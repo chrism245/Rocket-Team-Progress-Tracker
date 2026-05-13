@@ -3,7 +3,7 @@
 // @namespace    http://rocketeam/
 // @version      1.3.7
 // @description  Track submissions with rocket-themed progress visualization, daily stats, timezone support, and calendar-based interaction tracking
-// @author       @thestevek
+// @author       @chrism245
 // @match        https://a8c.zendesk.com/agent/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=zendesk.com
 // @updateURL    https://raw.githubusercontent.com/chrism245/Rocket-Team-Progress-Tracker/main/Rocket%20Team%20Progress%20Tracker-1.1.0.user.js

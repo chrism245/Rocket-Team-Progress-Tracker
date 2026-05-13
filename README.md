@@ -89,4 +89,4 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## Credits
 
-Originally based on a script by [@thestevek](https://github.com/thestevek). Extended with calendar tracking, product detection, and reliability improvements.
+Authored by [@chrism245](https://github.com/chrism245). Originally inspired by a script by @thestevek.
