@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rocket Team Progress Tracker
 // @namespace    http://rocketeam/
-// @version      1.3.8
+// @version      1.3.9
 // @description  Track submissions with rocket-themed progress visualization, daily stats, timezone support, and calendar-based interaction tracking
 // @author       @chrism245
 // @match        https://a8c.zendesk.com/agent/*
@@ -1652,20 +1652,18 @@
                 height: 22px;
             `;
 
-            // Dropdown menu
+            // Dropdown menu — appended to body to escape header overflow clipping
             const dropdown = document.createElement('div');
             dropdown.id = 'rocket-settings-dropdown';
             dropdown.style.cssText = `
                 display: none;
-                position: absolute;
-                top: 26px;
-                right: 0;
+                position: fixed;
                 background: #fff;
                 border: 1px solid #ddd;
                 border-radius: 6px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 99999;
-                min-width: 190px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+                z-index: 999999;
+                min-width: 200px;
                 overflow: hidden;
             `;
 
@@ -1748,18 +1746,26 @@
                 dropdown.appendChild(row);
             });
 
-            // Toggle dropdown on gear click; close when clicking outside
+            // Toggle dropdown — position it below the gear button using fixed coords
             gearButton.onclick = function(e) {
                 e.stopPropagation();
-                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                if (dropdown.style.display !== 'none') {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+                const rect = gearButton.getBoundingClientRect();
+                dropdown.style.top = (rect.bottom + 6) + 'px';
+                dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+                dropdown.style.left = 'auto';
+                dropdown.style.display = 'block';
             };
             document.addEventListener('click', () => { dropdown.style.display = 'none'; });
+            document.body.appendChild(dropdown);
 
             // Assemble the components
             progressContainer.appendChild(progressBar);
             statsSection.appendChild(progressContainer);
             controlsSection.appendChild(gearButton);
-            controlsSection.appendChild(dropdown);
 
             countDisplay.appendChild(statsSection);
             countDisplay.appendChild(controlsSection);
@@ -2296,7 +2302,7 @@
 
     // Initialize everything
     function initialize() {
-        console.log('🚀 [RocketCounter v1.3.8] Initializing...');
+        console.log('🚀 [RocketCounter v1.3.9] Initializing...');
 
         // Initialize theme
         initializeTheme();

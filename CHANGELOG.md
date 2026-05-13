@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [1.3.9] - 2026-05-06
+
+### Fixed
+- Settings dropdown now renders correctly — it is appended to `document.body` with `position: fixed` and positioned using the gear button's screen coordinates, so it is no longer clipped by Zendesk's header overflow
+
 ## [1.3.8] - 2026-05-06
 
 ### Changed
