@@ -6,6 +6,8 @@
 // @author       @thestevek
 // @match        https://a8c.zendesk.com/agent/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=zendesk.com
+// @updateURL    https://raw.githubusercontent.com/chrism245/Rocket-Team-Progress-Tracker/main/Rocket%20Team%20Progress%20Tracker-1.1.0.user.js
+// @downloadURL  https://raw.githubusercontent.com/chrism245/Rocket-Team-Progress-Tracker/main/Rocket%20Team%20Progress%20Tracker-1.1.0.user.js
 // @grant        none
 // ==/UserScript==
 
