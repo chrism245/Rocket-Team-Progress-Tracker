@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [1.3.7] - 2026-05-06
+
+### Added
+- **Manual add button (➕)** in the header controls. Click it, enter a ticket number or full URL, and the interaction is added to today's calendar and the counter increments by 1.
+  - If the ticket is currently open in Zendesk, the script enriches the entry with the subject, product, and ticket type from the DOM
+  - If not open, a minimal entry is created with the ticket ID and a constructed URL
+  - Accepts bare ticket numbers (e.g. `11234567`) or full Zendesk URLs
+
 ## [1.3.6] - 2026-05-06
 
 ### Fixed

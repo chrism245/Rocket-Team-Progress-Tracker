@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rocket Team Progress Tracker
 // @namespace    http://rocketeam/
-// @version      1.3.6
+// @version      1.3.7
 // @description  Track submissions with rocket-themed progress visualization, daily stats, timezone support, and calendar-based interaction tracking
 // @author       @thestevek
 // @match        https://a8c.zendesk.com/agent/*
@@ -1712,12 +1712,75 @@
                 }
             };
 
+            // ── Manual add button ─────────────────────────────────────────────
+            const addButton = document.createElement('button');
+            addButton.textContent = '➕';
+            addButton.title = 'Manually add a ticket to the calendar';
+            addButton.style.cssText = `
+                padding: 2px 4px;
+                font-size: 10px;
+                cursor: pointer;
+                border: 1px solid #ccc;
+                border-radius: 2px;
+                background-color: #fff;
+                line-height: 1;
+                min-width: 20px;
+                height: 20px;
+            `;
+            addButton.onclick = function(e) {
+                e.stopPropagation();
+                const input = prompt('🚀 Enter ticket number or URL to add to the calendar:');
+                if (!input) return;
+
+                // Accept a bare number or a full URL like .../tickets/12345
+                const match = input.trim().match(/(\d{6,})/);
+                if (!match) {
+                    alert('⚠️ Could not find a valid ticket number in your input.');
+                    return;
+                }
+                const ticketId = match[1];
+
+                // Base data — always available
+                const ticketData = {
+                    ticketId: ticketId,
+                    url: `https://a8c.zendesk.com/agent/tickets/${ticketId}`,
+                    subject: '',
+                    product: '',
+                    ticketType: '',
+                    status: '',
+                    priority: '',
+                    requester: ''
+                };
+
+                // If the ticket is currently open in the DOM, grab richer data
+                const openPane = document.querySelector(
+                    `[data-support-suite-trial-onboarding-id="conversationPane"][data-ticket-id="${ticketId}"]`
+                );
+                if (openPane) {
+                    ticketData.product = detectProductFromPage();
+                    ticketData.ticketType = normalizeTicketType(ticketData.product);
+                    const subjectEl = openPane.querySelector('[data-test-id="omni-header-subject"]');
+                    if (subjectEl) ticketData.subject = subjectEl.textContent.trim();
+                    dbg(`[Manual add] ticket ${ticketId} is open — enriched with DOM data`);
+                } else {
+                    dbg(`[Manual add] ticket ${ticketId} not open in DOM — using minimal data`);
+                }
+
+                interactionTracker.trackInteraction(ticketId, ticketData);
+                submissionCounter++;
+                localStorage.setItem('zendeskSubmissionCounter', submissionCounter.toString());
+                updateCountDisplay();
+                showRocketNotification(`➕ Ticket #${ticketId} added to today's calendar!`);
+                dbg(`[Manual add] ticket ${ticketId} added to calendar and counter incremented`);
+            };
+
             // Assemble the components
             progressContainer.appendChild(progressBar);
             statsSection.appendChild(progressContainer);
             controlsSection.appendChild(hoursButton);
             controlsSection.appendChild(rateButton);
             controlsSection.appendChild(resetButton);
+            controlsSection.appendChild(addButton);
 
             countDisplay.appendChild(statsSection);
             countDisplay.appendChild(controlsSection);
@@ -2254,7 +2317,7 @@
 
     // Initialize everything
     function initialize() {
-        console.log('🚀 [RocketCounter v1.3.6] Initializing...');
+        console.log('🚀 [RocketCounter v1.3.7] Initializing...');
 
         // Initialize theme
         initializeTheme();
