@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rocket Team Progress Tracker
 // @namespace    http://rocketeam/
-// @version      1.3.7
+// @version      1.3.8
 // @description  Track submissions with rocket-themed progress visualization, daily stats, timezone support, and calendar-based interaction tracking
 // @author       @chrism245
 // @match        https://a8c.zendesk.com/agent/*
@@ -1615,12 +1615,12 @@
                 white-space: nowrap;
             `;
 
-            // Create right section for buttons
+            // Create right section for the single settings button
             const controlsSection = document.createElement('div');
             controlsSection.style.cssText = `
                 display: flex;
-                gap: 2px;
                 align-items: center;
+                position: relative;
             `;
 
             // Create progress bar container
@@ -1637,152 +1637,129 @@
             const progressBar = document.createElement('div');
             progressBar.id = 'submission-progress-bar';
 
-            // Create control buttons
-            const hoursButton = document.createElement('button');
-            hoursButton.textContent = '⏰';
-            hoursButton.title = 'Adjust Support Hours';
-            hoursButton.style.cssText = `
-                padding: 2px 4px;
-                font-size: 10px;
+            // ── Single settings gear button with dropdown ─────────────────────
+            const gearButton = document.createElement('button');
+            gearButton.textContent = '⚙️';
+            gearButton.title = 'Settings & Actions';
+            gearButton.style.cssText = `
+                padding: 2px 5px;
+                font-size: 11px;
                 cursor: pointer;
                 border: 1px solid #ccc;
-                border-radius: 2px;
+                border-radius: 4px;
                 background-color: #fff;
                 line-height: 1;
-                min-width: 20px;
-                height: 20px;
+                height: 22px;
             `;
-            hoursButton.onclick = function(e) {
-                e.stopPropagation();
-                const hours = prompt("🚀 How many support hours are you fueling up for today?", workingHours);
-                if (hours !== null && !isNaN(hours)) {
-                    workingHours = parseInt(hours);
-                    dailyTarget = Math.ceil(workingHours * interactionsPerHour);
-                    localStorage.setItem('zendeskWorkingHours', workingHours.toString());
-                    localStorage.setItem('zendeskDailyTarget', dailyTarget.toString());
-                    updateCountDisplay();
-                }
-            };
 
-            const rateButton = document.createElement('button');
-            rateButton.textContent = '🎯';
-            rateButton.title = 'Adjust Target Rate (interactions per hour)';
-            rateButton.style.cssText = `
-                padding: 2px 4px;
-                font-size: 10px;
-                cursor: pointer;
-                border: 1px solid #ccc;
-                border-radius: 2px;
-                background-color: #fff;
-                line-height: 1;
-                min-width: 20px;
-                height: 20px;
+            // Dropdown menu
+            const dropdown = document.createElement('div');
+            dropdown.id = 'rocket-settings-dropdown';
+            dropdown.style.cssText = `
+                display: none;
+                position: absolute;
+                top: 26px;
+                right: 0;
+                background: #fff;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 99999;
+                min-width: 190px;
+                overflow: hidden;
             `;
-            rateButton.onclick = function(e) {
-                e.stopPropagation();
-                const newRate = prompt(`🚀 What's your target interactions per hour?\n(Current: ${interactionsPerHour}/h)`, interactionsPerHour);
-                if (newRate !== null && !isNaN(newRate) && parseFloat(newRate) > 0) {
-                    interactionsPerHour = parseFloat(newRate);
-                    dailyTarget = Math.ceil(workingHours * interactionsPerHour);
-                    localStorage.setItem('zendeskInteractionsPerHour', interactionsPerHour.toString());
-                    localStorage.setItem('zendeskDailyTarget', dailyTarget.toString());
-                    updateCountDisplay();
-                }
-            };
 
-            const resetButton = document.createElement('button');
-            resetButton.textContent = '🔄';
-            resetButton.title = 'Reset Mission Counter';
-            resetButton.style.cssText = `
-                padding: 2px 4px;
-                font-size: 10px;
-                cursor: pointer;
-                border: 1px solid #ccc;
-                border-radius: 2px;
-                background-color: #fff;
-                line-height: 1;
-                min-width: 20px;
-                height: 20px;
-            `;
-            resetButton.onclick = function(e) {
-                e.stopPropagation();
-                const newValue = prompt('🚀 Adjust your rocket\'s current altitude (interactions count):', submissionCounter);
-                if (newValue !== null && !isNaN(newValue)) {
-                    submissionCounter = parseInt(newValue);
+            const menuItems = [
+                { icon: '⏰', label: 'Adjust Hours', action: () => {
+                    const hours = prompt('🚀 How many support hours are you fueling up for today?', workingHours);
+                    if (hours !== null && !isNaN(hours)) {
+                        workingHours = parseInt(hours);
+                        dailyTarget = Math.ceil(workingHours * interactionsPerHour);
+                        localStorage.setItem('zendeskWorkingHours', workingHours.toString());
+                        localStorage.setItem('zendeskDailyTarget', dailyTarget.toString());
+                        updateCountDisplay();
+                    }
+                }},
+                { icon: '🎯', label: 'Adjust Target Rate', action: () => {
+                    const newRate = prompt(`🚀 What's your target interactions per hour?\n(Current: ${interactionsPerHour}/h)`, interactionsPerHour);
+                    if (newRate !== null && !isNaN(newRate) && parseFloat(newRate) > 0) {
+                        interactionsPerHour = parseFloat(newRate);
+                        dailyTarget = Math.ceil(workingHours * interactionsPerHour);
+                        localStorage.setItem('zendeskInteractionsPerHour', interactionsPerHour.toString());
+                        localStorage.setItem('zendeskDailyTarget', dailyTarget.toString());
+                        updateCountDisplay();
+                    }
+                }},
+                { icon: '🔄', label: 'Adjust Count', action: () => {
+                    const newValue = prompt('🚀 Adjust your rocket\'s current altitude (interactions count):', submissionCounter);
+                    if (newValue !== null && !isNaN(newValue)) {
+                        submissionCounter = parseInt(newValue);
+                        localStorage.setItem('zendeskSubmissionCounter', submissionCounter.toString());
+                        updateCountDisplay();
+                    }
+                }},
+                { icon: '➕', label: 'Add Ticket Manually', action: () => {
+                    const input = prompt('🚀 Enter ticket number or URL to add to the calendar:');
+                    if (!input) return;
+                    const match = input.trim().match(/(\d{6,})/);
+                    if (!match) { alert('⚠️ Could not find a valid ticket number in your input.'); return; }
+                    const ticketId = match[1];
+                    const ticketData = {
+                        ticketId, url: `https://a8c.zendesk.com/agent/tickets/${ticketId}`,
+                        subject: '', product: '', ticketType: '', status: '', priority: '', requester: ''
+                    };
+                    const openPane = document.querySelector(
+                        `[data-support-suite-trial-onboarding-id="conversationPane"][data-ticket-id="${ticketId}"]`
+                    );
+                    if (openPane) {
+                        ticketData.product = detectProductFromPage();
+                        ticketData.ticketType = normalizeTicketType(ticketData.product);
+                        const subjectEl = openPane.querySelector('[data-test-id="omni-header-subject"]');
+                        if (subjectEl) ticketData.subject = subjectEl.textContent.trim();
+                    }
+                    interactionTracker.trackInteraction(ticketId, ticketData);
+                    submissionCounter++;
                     localStorage.setItem('zendeskSubmissionCounter', submissionCounter.toString());
                     updateCountDisplay();
-                }
-            };
+                    showRocketNotification(`➕ Ticket #${ticketId} added to today's calendar!`);
+                }},
+            ];
 
-            // ── Manual add button ─────────────────────────────────────────────
-            const addButton = document.createElement('button');
-            addButton.textContent = '➕';
-            addButton.title = 'Manually add a ticket to the calendar';
-            addButton.style.cssText = `
-                padding: 2px 4px;
-                font-size: 10px;
-                cursor: pointer;
-                border: 1px solid #ccc;
-                border-radius: 2px;
-                background-color: #fff;
-                line-height: 1;
-                min-width: 20px;
-                height: 20px;
-            `;
-            addButton.onclick = function(e) {
+            menuItems.forEach((item, i) => {
+                const row = document.createElement('button');
+                row.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    width: 100%;
+                    padding: 8px 12px;
+                    border: none;
+                    background: transparent;
+                    cursor: pointer;
+                    font-size: 12px;
+                    text-align: left;
+                    color: #333;
+                    border-bottom: ${i < menuItems.length - 1 ? '1px solid #f0f0f0' : 'none'};
+                `;
+                row.innerHTML = `<span>${item.icon}</span><span>${item.label}</span>`;
+                row.onmouseenter = () => row.style.background = '#f5f5f5';
+                row.onmouseleave = () => row.style.background = 'transparent';
+                row.onclick = (e) => { e.stopPropagation(); dropdown.style.display = 'none'; item.action(); };
+                dropdown.appendChild(row);
+            });
+
+            // Toggle dropdown on gear click; close when clicking outside
+            gearButton.onclick = function(e) {
                 e.stopPropagation();
-                const input = prompt('🚀 Enter ticket number or URL to add to the calendar:');
-                if (!input) return;
-
-                // Accept a bare number or a full URL like .../tickets/12345
-                const match = input.trim().match(/(\d{6,})/);
-                if (!match) {
-                    alert('⚠️ Could not find a valid ticket number in your input.');
-                    return;
-                }
-                const ticketId = match[1];
-
-                // Base data — always available
-                const ticketData = {
-                    ticketId: ticketId,
-                    url: `https://a8c.zendesk.com/agent/tickets/${ticketId}`,
-                    subject: '',
-                    product: '',
-                    ticketType: '',
-                    status: '',
-                    priority: '',
-                    requester: ''
-                };
-
-                // If the ticket is currently open in the DOM, grab richer data
-                const openPane = document.querySelector(
-                    `[data-support-suite-trial-onboarding-id="conversationPane"][data-ticket-id="${ticketId}"]`
-                );
-                if (openPane) {
-                    ticketData.product = detectProductFromPage();
-                    ticketData.ticketType = normalizeTicketType(ticketData.product);
-                    const subjectEl = openPane.querySelector('[data-test-id="omni-header-subject"]');
-                    if (subjectEl) ticketData.subject = subjectEl.textContent.trim();
-                    dbg(`[Manual add] ticket ${ticketId} is open — enriched with DOM data`);
-                } else {
-                    dbg(`[Manual add] ticket ${ticketId} not open in DOM — using minimal data`);
-                }
-
-                interactionTracker.trackInteraction(ticketId, ticketData);
-                submissionCounter++;
-                localStorage.setItem('zendeskSubmissionCounter', submissionCounter.toString());
-                updateCountDisplay();
-                showRocketNotification(`➕ Ticket #${ticketId} added to today's calendar!`);
-                dbg(`[Manual add] ticket ${ticketId} added to calendar and counter incremented`);
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
             };
+            document.addEventListener('click', () => { dropdown.style.display = 'none'; });
 
             // Assemble the components
             progressContainer.appendChild(progressBar);
             statsSection.appendChild(progressContainer);
-            controlsSection.appendChild(hoursButton);
-            controlsSection.appendChild(rateButton);
-            controlsSection.appendChild(resetButton);
-            controlsSection.appendChild(addButton);
+            controlsSection.appendChild(gearButton);
+            controlsSection.appendChild(dropdown);
 
             countDisplay.appendChild(statsSection);
             countDisplay.appendChild(controlsSection);
@@ -2319,7 +2296,7 @@
 
     // Initialize everything
     function initialize() {
-        console.log('🚀 [RocketCounter v1.3.7] Initializing...');
+        console.log('🚀 [RocketCounter v1.3.8] Initializing...');
 
         // Initialize theme
         initializeTheme();

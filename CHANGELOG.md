@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [1.3.8] - 2026-05-06
+
+### Changed
+- Replaced the four individual header buttons (⏰ 🎯 🔄 ➕) with a single **⚙️ settings button** that opens a clean dropdown menu. The stats section now has full width so the counter text no longer gets cut off.
+
 ## [1.3.7] - 2026-05-06
 
 ### Added
