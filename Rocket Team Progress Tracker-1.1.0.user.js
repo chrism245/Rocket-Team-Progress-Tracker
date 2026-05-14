@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Rocket Team Progress Tracker
 // @namespace    http://rocketeam/
-// @version      1.3.9
+// @version      1.4.0
 // @description  Track submissions with rocket-themed progress visualization, daily stats, timezone support, and calendar-based interaction tracking
 // @author       @chrism245
 // @match        https://a8c.zendesk.com/agent/*
@@ -1746,18 +1746,24 @@
                 dropdown.appendChild(row);
             });
 
-            // Toggle dropdown — position it below the gear button using fixed coords
+            // Toggle dropdown — position it below and right-aligned to the gear button
             gearButton.onclick = function(e) {
                 e.stopPropagation();
                 if (dropdown.style.display !== 'none') {
                     dropdown.style.display = 'none';
                     return;
                 }
-                const rect = gearButton.getBoundingClientRect();
-                dropdown.style.top = (rect.bottom + 6) + 'px';
-                dropdown.style.right = (window.innerWidth - rect.right) + 'px';
-                dropdown.style.left = 'auto';
+                // Show offscreen first to measure actual width
+                dropdown.style.visibility = 'hidden';
                 dropdown.style.display = 'block';
+                const rect = gearButton.getBoundingClientRect();
+                const dw = dropdown.offsetWidth || 200;
+                // Right-align dropdown to gear button, clamped within viewport
+                const leftPos = Math.max(4, rect.right - dw);
+                dropdown.style.left = leftPos + 'px';
+                dropdown.style.right = '';
+                dropdown.style.top = (rect.bottom + 4) + 'px';
+                dropdown.style.visibility = 'visible';
             };
             document.addEventListener('click', () => { dropdown.style.display = 'none'; });
             document.body.appendChild(dropdown);
@@ -2302,7 +2308,7 @@
 
     // Initialize everything
     function initialize() {
-        console.log('🚀 [RocketCounter v1.3.9] Initializing...');
+        console.log('🚀 [RocketCounter v1.4.0] Initializing...');
 
         // Initialize theme
         initializeTheme();

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [1.4.0] - 2026-05-06
+
+### Fixed
+- Settings dropdown now correctly aligns to the right edge of the ⚙️ gear button — measures actual dropdown width before positioning so it never drifts left or off-screen
+
 ## [1.3.9] - 2026-05-06
 
 ### Fixed
