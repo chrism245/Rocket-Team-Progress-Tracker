@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Rocket Team Progress Tracker
 // @namespace    http://rocketeam/
-// @version      1.4.0
+// @version      1.5.0
 // @description  Track submissions with rocket-themed progress visualization, daily stats, timezone support, and calendar-based interaction tracking
 // @author       @chrism245
 // @match        https://a8c.zendesk.com/agent/*
+// @match        https://*.apps.zdusercontent.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=zendesk.com
 // @updateURL    https://raw.githubusercontent.com/chrism245/Rocket-Team-Progress-Tracker/main/Rocket%20Team%20Progress%20Tracker-1.1.0.user.js
 // @downloadURL  https://raw.githubusercontent.com/chrism245/Rocket-Team-Progress-Tracker/main/Rocket%20Team%20Progress%20Tracker-1.1.0.user.js
@@ -13,6 +14,33 @@
 
 (function() {
     'use strict';
+
+    // ─── a8cnotes IFRAME BRANCH ─────────────────────────────────────────────
+    // The a8cnotes sidebar app saves private notes outside the Zendesk
+    // conversation log, so the omni-log observer never sees them. The script
+    // also loads inside the app's iframe (apps.zdusercontent.com) thanks to
+    // the second @match; in that context it only watches for "Save note"
+    // clicks and notifies the agent page via postMessage.
+    if (window.self !== window.top) {
+        if (/a8cnotes/i.test(window.name)) {
+            console.log('🚀 [RocketTracker] a8cnotes iframe detected — watching for "Save note" clicks');
+            let lastSaveAt = 0;
+            document.addEventListener('click', (e) => {
+                if (!(e.target instanceof Element)) return;
+                const btn = e.target.closest('button, [role="button"]');
+                if (!btn) return;
+                const label = (btn.textContent || btn.getAttribute('aria-label') || '').trim();
+                if (!/^save\s*note$/i.test(label)) return;
+                const now = Date.now();
+                if (now - lastSaveAt < 3000) return; // guard against double clicks
+                lastSaveAt = now;
+                console.log('🚀 [RocketTracker] "Save note" clicked in a8cnotes — notifying agent page');
+                window.top.postMessage({ type: 'rocket-tracker:a8cnotes-note-saved' }, 'https://a8c.zendesk.com');
+            }, true);
+        }
+        return; // never build the tracker UI inside an iframe
+    }
+
     // Add Rocket-themed Styles and Dark Mode Support
     const styleSheet = document.createElement("style");
     styleSheet.textContent = `
@@ -2003,6 +2031,26 @@
     }
     // ───────────────────────────────────────────────────────────────────────────
 
+    // ─── a8cnotes SAVE LISTENER (agent page side) ──────────────────────────────
+    // Receives the postMessage sent from the a8cnotes iframe branch above and
+    // counts the saved note as an interaction on the currently active ticket.
+    function listenForA8cNotesSaves() {
+        window.addEventListener('message', (event) => {
+            if (!/^https:\/\/[\w-]+\.apps\.zdusercontent\.com$/.test(event.origin)) return;
+            if (!event.data || event.data.type !== 'rocket-tracker:a8cnotes-note-saved') return;
+
+            const urlMatch = window.location.pathname.match(/\/tickets\/(\d+)/);
+            if (!urlMatch) {
+                dbgWarn('[a8cnotes] Note saved but no active ticket in URL — not counting.');
+                return;
+            }
+            const ticketId = urlMatch[1];
+            dbg(`[a8cnotes] Note saved via a8cnotes on ticket ${ticketId} — incrementing counter`);
+            if (!detectProductFromPage()) showProductWarning();
+            incrementSubmissionCounter(ticketId);
+        });
+    }
+
     // Tab monitoring and initialization
     let tabContainer = null;
     let knownTabs = new Set();
@@ -2308,7 +2356,7 @@
 
     // Initialize everything
     function initialize() {
-        console.log('🚀 [RocketCounter v1.4.0] Initializing...');
+        console.log('🚀 [RocketCounter v1.5.0] Initializing...');
 
         // Initialize theme
         initializeTheme();
@@ -2326,6 +2374,9 @@
 
         // Start tab monitoring
         findTabContainer();
+
+        // Count notes saved via the a8cnotes sidebar app
+        listenForA8cNotesSaves();
 
         // Add version info to console
         console.log('🚀 [RocketCounter v1.3.0] Features:');

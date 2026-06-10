@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [1.5.0] - 2026-06-10
+
+### Added
+- **a8cnotes support** — notes saved through the a8cnotes sidebar app are now counted as interactions. The app stores notes outside the Zendesk conversation log, so the existing omni-log observer never saw them. The script now also loads inside the a8cnotes iframe (`*.apps.zdusercontent.com`), detects clicks on its "Save note" button, and notifies the agent page via `postMessage`, which increments the counter for the active ticket (with the same product-field warning as regular private notes). A 3-second cooldown guards against accidental double clicks.
+
 ## [1.4.0] - 2026-05-06
 
 ### Fixed
